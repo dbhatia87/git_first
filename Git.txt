@@ -14,9 +14,12 @@ git add -A   -- to add all new files for index
 git commit -a -m "comments...."   -- To commit multiple files
 
 git branch newbranch    -- To create newbranch 
+<<<<<<< HEAD
 
 git checkout master  -- Move to master branch
 
+=======
+>>>>>>> newbranch
  
 
   
