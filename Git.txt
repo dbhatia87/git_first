@@ -1,0 +1,16 @@
+git remote add origin "Http Address"
+ 
+To add a remote repository
+
+
+git pull origin main   Origin is name of rep and main is master branch
+
+git config --global user.name "Deepesh Bhatia"  -- To configure default username
+git config --global user.email "db@gmail.com"   -- To configure default email
+
+Emit global to  set id for only one repository
+
+git add -A   -- to add all new files for index
+  
+ 
+
