@@ -14,12 +14,18 @@ git add -A   -- to add all new files for index
 git commit -a -m "comments...."   -- To commit multiple files
 
 git branch newbranch    -- To create newbranch 
-<<<<<<< HEAD
 
 git checkout master  -- Move to master branch
 
-=======
->>>>>>> newbranch
+git merge newbranch -- This is to be run in master branch to merge new branch changes
+
+ssh-keygen   -- To generate the public key
+
+ssh -T git@github.com  To authenticate ssh
+
+git push origin master  -- To push files from origin to master branch
+ 
+
  
 
   
