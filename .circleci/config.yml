@@ -210,7 +210,7 @@ jobs:
             then
             curl -H "Content-Type: text/plain" -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request PUT --data "success" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             fi
-      - destroy-environmen            
+      - destroy-environment            
      # Here's where you will add some code to rollback on failure      
 
 
