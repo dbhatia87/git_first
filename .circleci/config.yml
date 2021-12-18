@@ -200,7 +200,6 @@ jobs:
           command: |
             ls .
             npm install
-            npm run migrations:revert
             npm run migrations > migration_dump.txt
             cat migration_dump.txt
       - run:
