@@ -259,10 +259,7 @@ jobs:
           name: Get backend url
           working_directory: ./frontend
           command: |
-            export API_URL="http://35.170.244.128:3030"
-            echo "API_URL = ${API_URL}"
-            echo API_URL="http://3.86.90.120:3030" >> frontend/.env
-            cat frontend/.env
+            echo API_URL="http://3.86.90.120:3030"
             npm install
             npm run build
       - run:
