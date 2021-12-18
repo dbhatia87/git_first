@@ -274,7 +274,7 @@ jobs:
           root: .
           paths:
             - frontend/dist
-          command: |
+
       - destroy-environment
       - revert-migrations
           
