@@ -19,6 +19,23 @@ commands:
             aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
 
 
+  revert-migrations:
+    description: Revert the last migration if successfully run in the current workflow.     
+    steps:
+      - run:
+          name: Revert migrations
+          working_directory: ./backend
+          command: |
+            SUCCESS=$(curl -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request GET https://api.memstash.io/values/DB_MIGRATION_${CIRCLE_WORKFLOW_ID:0:7})
+            SUCCESS = 1
+            if(( $SUCCESS==1 )); 
+            then
+              pwd
+              ls -la
+              npm run migrations:revert
+            fi
+          when: on_fail
+
             
 jobs:
   build-frontend:
@@ -144,6 +161,17 @@ jobs:
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}              
       - run:
+          name: Save backend URL in memstash
+          command: |
+            BACKEND_IP=$(aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters "Name=tag:project,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --output text)
+            echo "$BACKEND_IP"
+            curl -H "Content-Type: text/plain" -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request PUT --data "http://$BACKEND_IP:3030" https://api.memstash.io/values/BACKEND_URL
+            
+
+      - run:
           name: Add back-end ip to ansible inventory
           command: |
             echo -e "[web]\n" > inventory.txt
@@ -212,6 +240,42 @@ jobs:
       - destroy-environment    
                    # Here's where you will add some code to rollback on failure      
 
+  deploy-frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .      
+      - run:
+          name: Install dependencies
+          command: |
+          working_directory: /tmp
+            sudo apt-get update && sudo apt-get install -yy less
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+      - run:
+          name: Get backend url
+          working_directory: ./frontend
+          command: |
+            export API_URL=$(curl -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request GET https://api.memstash.io/values/BACKEND_URL)
+            echo "${API_URL}"
+            npm install
+            npm run build
+      - run:
+          name: Deploy frontend objects
+          working_directory: ./frontend          
+          command: |
+            aws s3 cp ./dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
+      - persist_to_workspace:
+          root: .
+          paths:
+            - frontend/dist
+          command: |
+      - destroy-environment
+      - revert-migrations
+          
 
 
 workflows:
@@ -236,8 +300,8 @@ workflows:
           requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
-  #    - deploy-frontend:
-   #       requires: [run-migrations]
+      - deploy-frontend:
+          requires: [run-migrations]
     #  - deploy-backend:
    #       requires: [run-migrations]
    #   - smoke-test:
