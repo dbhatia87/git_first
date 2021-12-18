@@ -160,15 +160,15 @@ jobs:
               --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}              
-      - run:
-          name: Save backend URL in memstash
-          command: |
-            BACKEND_IP=$(aws ec2 describe-instances \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters "Name=tag:project,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --output text)
-            echo "$BACKEND_IP"
-            curl -H "Content-Type: text/plain" -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request PUT --data "http://$BACKEND_IP:3030" https://api.memstash.io/values/BACKEND_URL
+#      - run:
+#          name: Save backend URL in memstash
+#          command: |
+#            BACKEND_IP=$(aws ec2 describe-instances \
+#              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+#              --filters "Name=tag:project,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+#              --output text)
+#            echo "$BACKEND_IP"
+#            curl -H "Content-Type: text/plain" -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request PUT --data "http://$BACKEND_IP:3030" https://api.memstash.io/values/BACKEND_URL
             
 
       - run:
@@ -259,8 +259,10 @@ jobs:
           name: Get backend url
           working_directory: ./frontend
           command: |
-            export API_URL=$(curl -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request GET https://api.memstash.io/values/BACKEND_URL)
-            echo "${API_URL}"
+            export API_URL="http://35.170.244.128:3030"
+            echo "API_URL = ${API_URL}"
+            echo API_URL="http://35.170.244.128:3030" >> frontend/.env
+            cat frontend/.env
             npm install
             npm run build
       - run:
