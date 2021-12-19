@@ -253,8 +253,8 @@ jobs:
           name: Get backend url
           working_directory: ./frontend
           command: |
-            export API_URL="http://54.164.166.246:3030"
-            echo API_URL="http://54.164.166.246:3030"
+            export API_URL="http://3.84.205.19:3030"
+            echo API_URL="http://3.84.205.19:3030"
             npm install
             npm run build
       - run:
@@ -351,9 +351,9 @@ jobs:
           command: |
             export BACKEND_IP=$(curl -H "Content-Type: text/plain" -H "token: 440bb73b-b904-44f1-ab72-71ade8f9b9e1" --request GET https://api.memstash.io/values/UdaPeople-${CIRCLE_WORKFLOW_ID:0:7}-BackendIP)
             echo "------------------------------------"
-            echo BACKEND_URL: http://54.164.166.246:3030/api/status
+            echo BACKEND_URL: http://3.84.205.19:3030/api/status
             echo "------------------------------------"
-            if curl -s http://54.164.166.246:3030/api/status | grep "ok"
+            if curl -s http://3.84.205.19:3030/api/status | grep "ok"
             then
               echo "Backend Smoke Test Success"
               exit 0
