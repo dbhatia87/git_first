@@ -361,6 +361,7 @@ jobs:
               echo "Backend Smoke Test Failed"
               exit 1
             fi
+            
       - run:
           name: Frontend smoke test.
           command: |
