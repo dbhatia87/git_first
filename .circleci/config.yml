@@ -251,13 +251,13 @@ jobs:
             sudo ./aws/install
       - run:
           name: Get backend url
-          working_directory: ./frontend
           command: |
             export API_URL="http://34.226.148.16:3030"
             echo API_URL="http://34.226.148.16:3030"
             echo API_URL=$API_URL >> "frontend/.env"
             echo ENVIRONMENT=production  >> "frontend/.env"
             echo NODE_ENV=production >> "frontend/.env"
+            cd frontend
             npm install
             npm run build
 
