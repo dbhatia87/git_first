@@ -278,15 +278,16 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            BACKEND_IP=`cat .circleci/ansible/inventory.txt | head -2 | tail -1`
-            API_URL="http://${BACKEND_IP}:3030"
-            echo "API_URL: ${API_URL}"
-            export API_URL=${API_URL}
-            echo "${API_URL}" >> "frontend/.env"
+            export BACKEND_IP=`cat .circleci/ansible/inventory.txt | head -2 | tail -1`
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "API_URL = ${API_URL}"
+            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
             cd frontend
             npm install
             npm run build
+
+
 
       - run:
           name: Deploy frontend objects
