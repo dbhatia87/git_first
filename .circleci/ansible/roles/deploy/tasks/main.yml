@@ -1,60 +1,67 @@
 ---
-  - name: "show remote environment"
-    shell: env
+- name: "update apt packages."
+  become: yes
+  apt:
+    update_cache: yes
 
-  - name: "Create directory"
-    become: true
-    file:
-      path: /home/ubuntu/uda_app
-      state: directory
-      owner: ubuntu
-      group: ubuntu
-      mode: 0755
+- name: "upgrade packages"
+  become: yes
+  apt:
+    upgrade: yes
 
-  - name: Copy backend files
-    become: true
-    copy:
-      src: /root/project/backend.tar.gz
-      dest: /home/ubuntu/uda_app/
-      owner: ubuntu
-      group: ubuntu
-      mode: 0755
+- name: remove dependencies that are no longer required
+  become: yes
+  apt:
+    autoremove: yes
+    
+- name: "install dependencies, such as NodeJS and NPM"
+  become: yes
+  apt:
+    name: ["nodejs", "npm"]
+    state: latest
+    update_cache: yes
 
-  - name: "Check for tar file"
-    become: true
-    command:
-      ls -l /home/ubuntu/uda_app/backend.tar.gz
+- name: "install pm2"
+  become: yes
+  npm:
+    name: pm2
+    global: yes
+    production: yes
 
-  - name: Unarchive a file that is already on the remote machine
-    ansible.builtin.unarchive:
-       remote_src: yes
-       src: /home/ubuntu/uda_app/backend.tar.gz
-       dest: /home/ubuntu/uda_app
+- name: Create directory
+  file:
+    path: /home/ubuntu/backend
+    state: directory
 
-  - name: "Check and install npm"
-    become: true
-    command: npm install
-    args:
-      chdir: /home/ubuntu/uda_app/backend
+- name: Copy backend files to home server
+  copy:
+    src: /root/project/backend
+    dest: /home/ubuntu/
 
-  - name: "delete anything that might already be running"
-    become: true
-    command: pm2 delete all
-    ignore_errors: true
+- name: Copy backend files to root server
+  become: true
+  copy:
+    src: /root/project/backend
+    dest: /root
+    force: no
 
-  - name: "start server"
-    become: true
-    command: pm2 start -f ./main.js
-    args:
-      chdir: /home/ubuntu/uda_app/backend/dist
-    environment:
-     ENVIRONMENT: production
-     TYPEORM_CONNECTION: "{{ lookup('env', 'TYPEORM_CONNECTION') }}"
-     TYPEORM_MIGRATIONS_DIR: "./migrations"
-     TYPEORM_MIGRATIONS: "./migrations/*.js"
-     TYPEORM_ENTITIES: "./modules/domain/**/*.entity.js"
-     TYPEORM_HOST: "{{ lookup('env', 'TYPEORM_HOST') }}"
-     TYPEORM_PORT: "{{ lookup('env', 'TYPEORM_PORT') }}"
-     TYPEORM_USERNAME: "{{ lookup('env', 'TYPEORM_USERNAME') }}"
-     TYPEORM_PASSWORD: "{{ lookup('env', 'TYPEORM_PASSWORD') }}"
-     TYPEORM_DATABASE: "{{ lookup('env', 'TYPEORM_DATABASE') }}"
+- name: Install Node
+  shell: |
+    cd /home/ubuntu/backend
+    npm install
+    npm install --only=dev
+- name: Build package
+  shell: |
+    cd /home/ubuntu/backend
+    npm run build
+    cat .env
+    npm run prestart:prod
+- name: Start PM2
+  shell: |
+    cd /home/ubuntu/backend
+    pm2 start npm --no-automation --name "backend" -- run start
+- name: start pm2 for dist/main.js
+  become: no
+  shell: pm2 start main.js
+  args:
+    chdir: /home/ubuntu/backend/dist
