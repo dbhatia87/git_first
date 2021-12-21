@@ -281,11 +281,21 @@ jobs:
             export BACKEND_IP=`cat .circleci/ansible/inventory.txt | head -2 | tail -1`
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
-            echo API_URL="http://${BACKEND_IP}:3030" 
-            cd frontend
-            npm install
-            npm run build
+            echo API_URL="http://${BACKEND_IP}:3030" >> "frontend/.env"
+            echo ENVIRONMENT=production  >> "frontend/.env" 
+            echo NODE_ENV=production >> "frontend/.env"
 
+
+      - run:  
+          name: configure server
+          working_directory: ./frontend         
+          command: |
+            npm install
+            npm install -g typescript ts-node
+            npm install package.json
+            cat .env
+            ls -la
+            npm run build
 
 
       - run:
