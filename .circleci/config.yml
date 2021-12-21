@@ -32,43 +32,73 @@ commands:
 
             
 jobs:
+
+  install-backend-dependencies:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: npm install
+          working_directory: ./backend
+          command: pwd; ls -la && npm install; pwd; ls -la
+      - persist_to_workspace:
+          root: .
+          paths:
+            - backend/node_modules
+
+  install-frontend-dependencies:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: npm install
+          working_directory: ./frontend
+          command: ls -la && npm install; pwd
+      - persist_to_workspace:
+          root: .
+          paths:
+            - frontend/node_modules
+
   build-frontend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - restore_cache:
-          keys: [frontend-build]
+      - attach_workspace:
+          at: .
       - run:
-          name: Build front-end
+          name: Frontend Build
           command: |
-            # Your code here
             cd frontend
-            npm install
+            npm i
             npm run build
-            
-      - save_cache:
-          paths: [frontend/node_modules]
-          key: frontend-build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - frontend/dist
 
   build-backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - restore_cache:
-          keys: [backend-build]
+      - attach_workspace:
+          at: .
       - run:
-          name: Back-end build
+          name: Backend build
           command: |
-             # Your code here
-             cd backend
-             npm install
-             npm run build
-             
-      - save_cache:
-          paths: [backend/node_modules]
-          key: backend-build
+            cd backend
+            npm i
+            npm run build
+            pwd
+            ls -la
+            
+      - persist_to_workspace:
+          root: .
+          paths:
+            - backend/dist
 
 
   test-frontend:
@@ -76,8 +106,6 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - restore_cache:
-          keys: [test-frontend]
       - run:
           name: test frontend
           command: |
@@ -90,44 +118,40 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - restore_cache:
-          keys: [test-backend]
       - run:
           name: test backend
           command: |
             cd backend
             npm i
-            npm test  
+            npm test
 
   scan-frontend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - restore_cache:
-          keys: [scan-frontend]
       - run:
-          name: scan frontend
+          name: Check Frontend against security vulnerabilities
           command: |
             cd frontend
-            npm install
+            npm i
             npm audit fix --audit-level=critical --force
-            npm audit --audit-level=critical 
+      - restore_cache:
+          key: v1-frontend-build
 
   scan-backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - restore_cache:
-          keys: [scan-backend]
       - run:
-          name: scan backend
+          name: Check Backend against security vulnerabilities
           command: |
-            cd backend
-            npm install
+            cd backend; ls -la
+            npm i
             npm audit fix --audit-level=critical --force
-            npm audit --audit-level=critical 
+      - restore_cache:
+          key: v1-backend-build 
 
   deploy-infrastructure:
     docker:
@@ -174,10 +198,11 @@ jobs:
               --filters "Name=tag:project,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text \
               --region us-east-1 >> inventory.txt      
+              cat inventory.txt
       - persist_to_workspace:
-          root: ~/
+          root: .
           paths:
-            - project/.circleci/ansible/inventory.txt
+            - .circleci/ansible/inventory.txt
           
 
       - destroy-environment
@@ -420,6 +445,8 @@ jobs:
 workflows:
   default:
     jobs:
+      - install-backend-dependencies
+      - install-frontend-dependencies    
       - build-frontend
       - build-backend
       - test-frontend:
