@@ -313,6 +313,7 @@ jobs:
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
       - run:
           name: Deploy backend
+          no_output_timeout: 30m  
           command: |
             cd backend
             npm i
