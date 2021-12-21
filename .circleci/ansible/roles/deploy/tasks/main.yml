@@ -38,6 +38,7 @@
     src: /root/project/backend
     dest: /home/ubuntu/
 
+
 - name: Copy backend files to root server
   become: true
   copy:
