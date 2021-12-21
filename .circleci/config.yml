@@ -253,11 +253,12 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export API_URL="http://3.85.163.87:3030"
-            echo API_URL="http://3.85.163.87:3030"
-            echo API_URL=$API_URL >> "frontend/.env"
-            echo ENVIRONMENT=production  >> "frontend/.env"
-            echo NODE_ENV=production >> "frontend/.env"
+            BACKEND_IP=`cat .circleci/ansible/inventory.txt | head -2 | tail -1`
+            API_URL="http://${BACKEND_IP}:3030"
+            echo "API_URL: ${API_URL}"
+            export API_URL=${API_URL}
+            echo "${API_URL}" >> "frontend/.env"
+            cat frontend/.env
             cd frontend
             npm install
             npm run build
@@ -341,9 +342,9 @@ jobs:
           command: |
             export BACKEND_IP=$(curl -H "Content-Type: text/plain" -H "token: 440bb73b-b904-44f1-ab72-71ade8f9b9e1" --request GET https://api.memstash.io/values/UdaPeople-${CIRCLE_WORKFLOW_ID:0:7}-BackendIP)
             echo "------------------------------------"
-            echo BACKEND_URL: http://3.85.163.87:3030/api/status
+            echo BACKEND_URL: http://54.86.194.127:3030/api/status
             echo "------------------------------------"
-            if curl -s http://3.85.163.87:3030/api/status | grep "ok"
+            if curl -s http://54.86.194.127:3030/api/status | grep "ok"
             then
               echo "Backend Smoke Test Success"
               exit 0
