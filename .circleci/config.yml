@@ -411,7 +411,7 @@ jobs:
 
   cloudfront-update:
     docker:
-      - image: amazon/aws-cli
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - run:
@@ -434,7 +434,7 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
               --tags project=udapeople \
-              --stack-name udapeople-production \
+              --stack-name InitialStack \
               --parameter-overrides WorkflowID=${CIRCLE_WORKFLOW_ID:0:7}          
 
       - destroy-environment
