@@ -412,15 +412,16 @@ jobs:
 
   cloudfront-update:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: amazon/aws-cli
     steps:
+      # Checkout code from git
       - checkout
       - run:
           name: Install dependencies
           command: |
-            apk add nodejs
-            apk add npm
-            pip install awscli
+            yum install -y tar gzip curl
+            curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+            yum install -y nodejs
 
       - run:
           name: get old workflow if from memstash for cleanup phase
