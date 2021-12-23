@@ -32,120 +32,98 @@ commands:
             
 jobs:
 
-  install-backend-dependencies:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - run:
-          name: npm install
-          working_directory: ./backend
-          command: pwd; ls -la && npm install; pwd; ls -la
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - backend/node_modules
-
-  install-frontend-dependencies:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - run:
-          name: npm install
-          working_directory: ./frontend
-          command: ls -la && npm install; pwd
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - frontend/node_modules
 
   build-frontend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - restore_cache:
+          keys: [frontend-build]
       - run:
-          name: Frontend Build
+          name: Build front-end
           command: |
             cd frontend
-            npm i
+            npm install
             npm run build
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - frontend/dist
+      - save_cache:
+          paths: [frontend/node_modules]
+          key: frontend-build
 
   build-backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - restore_cache:
+          keys: [backend-build]
       - run:
-          name: Backend build
+          name: Back-end build
           command: |
             cd backend
-            npm i
+            npm install
             npm run build
-            pwd
-            ls -la
-            
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - backend/dist
-
+      - save_cache:
+          paths: [backend/node_modules]
+          key: backend-build
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
 
   test-frontend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - restore_cache:
+          keys: [frontend-build]
       - run:
-          name: test frontend
+          name: Test front-end
           command: |
             cd frontend
-            npm i
-            npm test
-                
+            npm install
+            npm run test
   test-backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - restore_cache:
+          keys: [backend-build]
       - run:
-          name: test backend
+          name: test Back-end
           command: |
             cd backend
-            npm i
-            npm test
+            npm install
+            npm run test
   scan-frontend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - restore_cache:
+          keys: [frontend-build]
       - run:
-          name: Check Frontend against security vulnerabilities
+          name: Scan front-end
           command: |
             cd frontend
-            npm i
+            npm install
             npm audit fix --audit-level=critical --force
-      - restore_cache:
-          key: v1-frontend-build
-
+            npm audit --audit-level=critical
   scan-backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - run:
-          name: Check Backend against security vulnerabilities
-          command: |
-            cd backend; ls -la
-            npm i
-            npm audit fix --audit-level=critical --force
       - restore_cache:
-          key: v1-backend-build 
+          keys: [backend-build]
+      - run:
+          name: Scan back-end
+          command: |
+            cd backend
+            npm install
+            npm audit fix --audit-level=critical --force
+            npm audit --audit-level=critical
 
   deploy-infrastructure:
     docker:
