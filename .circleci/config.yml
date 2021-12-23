@@ -198,6 +198,7 @@ jobs:
               --filters "Name=tag:project,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text >> inventory.txt 
               cat inventory.txt
+              pwd
       - persist_to_workspace:
           root: ansible
           paths:
