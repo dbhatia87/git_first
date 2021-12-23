@@ -189,6 +189,7 @@ jobs:
 #            curl -H "Content-Type: text/plain" -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request PUT --data "http://$BACKEND_IP:3030" https://api.memstash.io/values/BACKEND_URL
             
 
+
       - run:
           name: Add back-end ip to ansible inventory
           command: |
