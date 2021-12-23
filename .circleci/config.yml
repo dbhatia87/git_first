@@ -239,9 +239,9 @@ jobs:
           at: .
       - run:
           name: Run migrations
+          working_directory: ./backend
           command: |
             ls .
-            cd ./project/backend
             npm install
             npm run migrations > migration_dump.txt
             cat migration_dump.txt
