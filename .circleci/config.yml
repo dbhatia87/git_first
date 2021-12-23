@@ -194,7 +194,7 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            echo -e "[web]\n" > inventory.txt
+            echo -e "[web]" > inventory.txt
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --filters "Name=tag:project,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
@@ -277,23 +277,17 @@ jobs:
             unzip awscliv2.zip
             sudo ./aws/install
       - run:
-          name: Get backend url
+          name: Get backend url and deploy frontend objects
           command: |
-            export BACKEND_IP=`cat .circleci/ansible/inventory.txt | head -2 | tail -1`
-            export API_URL="http://${BACKEND_IP}:3030"
-            echo "API_URL = ${API_URL}"
-            echo API_URL="http://${BACKEND_IP}:3030" >> "frontend/.env"
-            echo ENVIRONMENT=production  >> "frontend/.env" 
-            echo NODE_ENV=production >> "frontend/.env"
-
-
-      - run:  
-          name: configure server
-          working_directory: ./frontend         
-          command: |
+            # your code here
+            BACKEND_IP=`cat .circleci/ansible/inventory.txt | head -2 | tail -1`
+            API_URL="http://${BACKEND_IP}:3030"
+            echo "API_URL: ${API_URL}"
+            export API_URL=${API_URL}
+            echo "${API_URL}" >> "frontend/.env"
+            cat frontend/.env
+            cd frontend
             npm install
-            cat .env
-            ls -la
             npm run build
 
 
@@ -373,25 +367,24 @@ jobs:
       - image: python:3.7-alpine3.11
     steps:
       - checkout
+      - attach_workspace:
+          at: .        
       - run:
           name: Install dependencies
           command: |
             apk add --update curl
             pip install awscli
       - run:
-          name: Backend smoke test.
+          name: Get backend url & Backend smoke test.
           command: |
-            export BACKEND_IP=$(curl -H "Content-Type: text/plain" -H "token: 440bb73b-b904-44f1-ab72-71ade8f9b9e1" --request GET https://api.memstash.io/values/UdaPeople-${CIRCLE_WORKFLOW_ID:0:7}-BackendIP)
-            echo "------------------------------------"
-            echo BACKEND_URL: http://18.205.28.190:3030/api/status
-            echo "------------------------------------"
-            if curl -s http://18.205.28.190:3030/api/status | grep "ok"
+            BACKEND_IP=`cat .circleci/ansible/inventory.txt | head -2 | tail -1`
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+            if curl "${API_URL}/api/status" | grep "ok"
             then
-              echo "Backend Smoke Test Success"
-              exit 0
+              return 0
             else
-              echo "Backend Smoke Test Failed"
-              exit 1
+              return 1
             fi
       - run:
           name: Frontend smoke test.
