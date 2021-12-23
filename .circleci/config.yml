@@ -25,7 +25,7 @@ commands:
       - run:
           name: Revert migrations
           command: |
-            cd ~/project/backend
+            cd ./project/backend
             npm install
             npm run migrations:revert
           when: on_fail
@@ -197,7 +197,7 @@ jobs:
               --output text >> .circleci/ansible/inventory.txt
               cat inventory.txt
       - persist_to_workspace:
-          root: ~/
+          root: .
           paths:
             - .circleci/ansible/inventory.txt
           
@@ -236,12 +236,12 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: ~/
+          at: .
       - run:
           name: Run migrations
           command: |
             ls .
-            cd ~/project/backend
+            cd ./project/backend
             npm install
             npm run migrations > migration_dump.txt
             cat migration_dump.txt
@@ -261,7 +261,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: ~/      
+          at: .    
       - run:
           name: Install dependencies
           working_directory: /tmp
@@ -307,7 +307,7 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["2e:5d:96:41:cb:53:cf:04:22:c6:5b:9c:a9:5b:4c:ef"]
       - attach_workspace:
-          at: ~/
+          at: .
 
       - run:
           name: Install dependencies
@@ -362,7 +362,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: ~/        
+          at: .       
       - run:
           name: Install dependencies
           command: |
