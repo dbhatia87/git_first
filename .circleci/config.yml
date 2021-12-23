@@ -42,7 +42,7 @@ jobs:
           working_directory: ./backend
           command: pwd; ls -la && npm install; pwd; ls -la
       - persist_to_workspace:
-          root: .
+          root: ~/
           paths:
             - backend/node_modules
 
@@ -56,7 +56,7 @@ jobs:
           working_directory: ./frontend
           command: ls -la && npm install; pwd
       - persist_to_workspace:
-          root: .
+          root: ~/
           paths:
             - frontend/node_modules
 
@@ -65,8 +65,6 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - attach_workspace:
-          at: .
       - run:
           name: Frontend Build
           command: |
@@ -74,7 +72,7 @@ jobs:
             npm i
             npm run build
       - persist_to_workspace:
-          root: .
+          root: ~/
           paths:
             - frontend/dist
 
@@ -83,8 +81,6 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - attach_workspace:
-          at: .
       - run:
           name: Backend build
           command: |
@@ -95,7 +91,7 @@ jobs:
             ls -la
             
       - persist_to_workspace:
-          root: .
+          root: ~/
           paths:
             - backend/dist
 
@@ -197,13 +193,13 @@ jobs:
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --filters "Name=tag:project,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --output text >> inventory.txt 
+              --output text >> .circleci/ansible/inventory.txt 
               cat inventory.txt
               pwd
       - persist_to_workspace:
-          root: ansible
+          root: ~/
           paths:
-            - inventory.txt
+            - project/.circleci/ansible/inventory.txt
           
 
       # destroy-environment
@@ -217,7 +213,7 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["2e:5d:96:41:cb:53:cf:04:22:c6:5b:9c:a9:5b:4c:ef"]
       - attach_workspace:
-          at: /tmp/ansible
+          at: ~/
       - run:
           name: Install dependencies
           working_directory: ./.circleci/ansible
@@ -231,9 +227,11 @@ jobs:
           name: Configure server
           working_directory: ./.circleci/ansible
           command: |
-            pwd &&
-            cat /tmp/ansible/inventory.txt
-            ansible-playbook -i /tmp/ansible/inventory.txt configure-server.yml
+            pwd 
+            cat project/.circleci/ansible/inventory.txt
+            echo "test 2"
+            cat .circleci/ansible/inventory.txt
+            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt configure-server.yml
       - destroy-environment
 
   run-migrations:
